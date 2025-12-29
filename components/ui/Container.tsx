@@ -3,7 +3,7 @@ import React from 'react'
 
 const Container = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   return (
-    <main className={cn("w-full max-w-7xl mx-auto p-4", className)}>
+    <main className={cn("w-full max-w-7xl mx-auto p-4 md:py-8", className)}>
         {children}
     </main>
   )

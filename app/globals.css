@@ -123,10 +123,8 @@
   .nav-link {
     @apply px-6 py-2 flex flex-col items-center gap-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100;
   }
-  .nav-link.active {
-    @apply bg-gray-200 text-gray-900 font-semibold;
-  }
+  .nav-link.active,
   .nav-link.active:hover {
-    @apply bg-gray-200 text-gray-900;
+    @apply bg-blue-900/85 text-gray-200 font-semibold;
   }
 }
