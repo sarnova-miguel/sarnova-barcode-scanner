@@ -28,7 +28,7 @@ const SarnovaBarcodeScanner = () => {
 
   const startScanning = async () => {
     if (!html5QrCodeRef.current) {
-      console.log("start scan but no html5QrCodeRef.curent ...");
+      console.log("startScanning started but no html5QrCodeRef.current ...");
       return;
     }
 
@@ -51,7 +51,7 @@ const SarnovaBarcodeScanner = () => {
       // Error callback (optional, usually can be ignored)
       const qrCodeErrorCallback = () => {
         // Ignore errors during scanning (they happen frequently)
-        console.log("Code scan error");
+        console.log("Common error - no barcode detected");
       };
 
       // Start scanning with back camera (environment)
