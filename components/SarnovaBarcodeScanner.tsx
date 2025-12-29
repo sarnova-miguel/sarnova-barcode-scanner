@@ -5,10 +5,18 @@ import { Html5Qrcode } from "html5-qrcode";
 import { Button } from "@/components/ui/button";
 import { Camera, CameraOff, Upload } from "lucide-react";
 
+// Security constants
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/bmp'];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_DIMENSION = 4096; // 4K resolution
+const MAX_UPLOADS_PER_MINUTE = 10;
+
 const SarnovaBarcodeScanner = () => {
   const [isScanning, setIsScanning] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [scannedResult, setScannedResult] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [uploadAttempts, setUploadAttempts] = useState<number[]>([]);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const isStoppingRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -131,7 +139,120 @@ const SarnovaBarcodeScanner = () => {
     }
   };
 
+  // Validation #4: Rate limiting
+  const checkRateLimit = (): boolean => {
+    const now = Date.now();
+    const oneMinuteAgo = now - 60000;
+
+    // Filter out attempts older than 1 minute
+    const recentAttempts = uploadAttempts.filter(time => time > oneMinuteAgo);
+
+    if (recentAttempts.length >= MAX_UPLOADS_PER_MINUTE) {
+      setError('Too many upload attempts. Please wait a moment before trying again.');
+      return false;
+    }
+
+    setUploadAttempts([...recentAttempts, now]);
+    return true;
+  };
+
+  // Validation #1: File type and size validation
+  const validateFileTypeAndSize = (file: File): string | null => {
+    // Validate MIME type
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+      return 'Invalid file type. Please upload a valid image (JPEG, PNG, WebP, or BMP).';
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      return `File too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB.`;
+    }
+
+    // Validate file extension matches MIME type
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const validExtensions = ['jpg', 'jpeg', 'png', 'webp', 'bmp'];
+    if (!extension || !validExtensions.includes(extension)) {
+      return 'Invalid file extension. Please use JPG, PNG, WebP, or BMP files.';
+    }
+
+    return null;
+  };
+
+  // Validation #2: Magic bytes validation
+  const validateImageFile = async (file: File): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+
+      reader.onloadend = (e) => {
+        if (!e.target?.result) {
+          resolve(false);
+          return;
+        }
+
+        const arr = new Uint8Array(e.target.result as ArrayBuffer).subarray(0, 4);
+        let header = '';
+        for (let i = 0; i < arr.length; i++) {
+          header += arr[i].toString(16);
+        }
+
+        // Check magic bytes for common image formats
+        const validHeaders = [
+          'ffd8ffe0', // JPEG
+          'ffd8ffe1', // JPEG
+          'ffd8ffe2', // JPEG
+          'ffd8ffe8', // JPEG
+          '89504e47', // PNG
+          '47494638', // GIF
+          '424d',     // BMP
+          '52494646', // WEBP (starts with RIFF)
+        ];
+
+        resolve(validHeaders.some(h => header.startsWith(h)));
+      };
+
+      reader.onerror = () => {
+        resolve(false);
+      };
+
+      reader.readAsArrayBuffer(file.slice(0, 4));
+    });
+  };
+
+  // Validation #3: Image dimension validation
+  const validateImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        resolve({ width: img.width, height: img.height });
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load image'));
+      };
+
+      img.src = url;
+    });
+  };
+
+  // Sanitize file name for logging
+  const sanitizeFileName = (fileName: string): string => {
+    return fileName
+      .replace(/[^a-zA-Z0-9._-]/g, '_')
+      .replace(/\.{2,}/g, '.')
+      .substring(0, 255);
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Prevent multiple simultaneous uploads
+    if (isUploading) {
+      console.log("Upload already in progress");
+      return;
+    }
+
     const file = event.target.files?.[0];
     if (!file) {
       return;
@@ -142,9 +263,48 @@ const SarnovaBarcodeScanner = () => {
       return;
     }
 
+    setIsUploading(true);
+
     try {
       setError("");
-      console.log("Scanning file:", file.name);
+      console.log("Processing file:", sanitizeFileName(file.name));
+
+      // Validation #4: Check rate limit
+      if (!checkRateLimit()) {
+        return;
+      }
+
+      // Validation #1: File type and size validation
+      const typeError = validateFileTypeAndSize(file);
+      if (typeError) {
+        setError(typeError);
+        console.warn("File validation failed:", typeError);
+        return;
+      }
+
+      // Validation #2: Magic bytes validation
+      const isValidImage = await validateImageFile(file);
+      if (!isValidImage) {
+        setError('File appears to be corrupted or not a valid image.');
+        console.warn("Magic bytes validation failed");
+        return;
+      }
+
+      // Validation #3: Image dimension validation
+      try {
+        const { width, height } = await validateImageDimensions(file);
+        console.log(`Image dimensions: ${width}x${height}`);
+
+        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+          setError(`Image dimensions too large. Maximum ${MAX_DIMENSION}x${MAX_DIMENSION} pixels.`);
+          console.warn(`Image too large: ${width}x${height}`);
+          return;
+        }
+      } catch (dimensionErr) {
+        setError('Failed to validate image dimensions. The file may be corrupted.');
+        console.error("Dimension validation error:", dimensionErr);
+        return;
+      }
 
       // Stop camera scanning if it's running
       if (isScanning) {
@@ -152,14 +312,52 @@ const SarnovaBarcodeScanner = () => {
       }
 
       // Scan the uploaded file
+      console.log("Starting barcode scan...");
       const decodedText = await html5QrCodeRef.current.scanFile(file, true);
       console.log(`File scan successful: ${decodedText}`);
       setScannedResult(decodedText);
+
+      // Log successful scan (without sensitive data)
+      console.log("Barcode scan completed successfully", {
+        method: 'upload',
+        fileSize: file.size,
+        fileType: file.type
+      });
+
     } catch (err) {
       console.error("Failed to scan file:", err);
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      setError(`Failed to scan image: ${errorMessage}`);
+
+      // Validation #8: Comprehensive error handling with user-friendly messages
+      let userMessage = 'Failed to scan image. ';
+      if (err instanceof Error) {
+        const errorMsg = err.message.toLowerCase();
+
+        if (errorMsg.includes('no barcode') || errorMsg.includes('no qr code') || errorMsg.includes('couldn\'t find')) {
+          userMessage += 'No barcode or QR code found in the image. Please ensure the image contains a clear, visible barcode.';
+        } else if (errorMsg.includes('format')) {
+          userMessage += 'Unsupported barcode format detected.';
+        } else if (errorMsg.includes('decode') || errorMsg.includes('read')) {
+          userMessage += 'Unable to decode the barcode. Please try a clearer image.';
+        } else {
+          userMessage += 'Please try a different image with a clear barcode.';
+        }
+
+        console.error("Scan error details:", err.message);
+      } else {
+        userMessage += 'An unexpected error occurred.';
+      }
+
+      setError(userMessage);
+
+      // Log error for monitoring
+      console.log("Barcode scan error", {
+        method: 'upload',
+        error: err instanceof Error ? err.message : 'Unknown error'
+      });
+
     } finally {
+      setIsUploading(false);
+
       // Reset the file input so the same file can be selected again
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -201,10 +399,10 @@ const SarnovaBarcodeScanner = () => {
           onClick={handleUploadClick}
           variant="outline"
           className="flex items-center gap-2 cursor-pointer"
-          disabled={isScanning}
+          disabled={isScanning || isUploading}
         >
           <Upload className="w-4 h-4" />
-          Upload Image
+          {isUploading ? 'Processing...' : 'Upload Image'}
         </Button>
       </div>
 
