@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { Button } from "@/components/ui/button";
-import { Camera, CameraOff } from "lucide-react";
+import { Camera, CameraOff, Upload } from "lucide-react";
 
 const SarnovaBarcodeScanner = () => {
   const [isScanning, setIsScanning] = useState(false);
@@ -11,6 +11,7 @@ const SarnovaBarcodeScanner = () => {
   const [error, setError] = useState<string>("");
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const isStoppingRef = useRef(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     // Initialize Html5Qrcode instance only once
@@ -130,8 +131,48 @@ const SarnovaBarcodeScanner = () => {
     }
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (!html5QrCodeRef.current) {
+      console.log("handleFileUpload: no html5QrCodeRef.current");
+      return;
+    }
+
+    try {
+      setError("");
+      console.log("Scanning file:", file.name);
+
+      // Stop camera scanning if it's running
+      if (isScanning) {
+        await stopScanning();
+      }
+
+      // Scan the uploaded file
+      const decodedText = await html5QrCodeRef.current.scanFile(file, true);
+      console.log(`File scan successful: ${decodedText}`);
+      setScannedResult(decodedText);
+    } catch (err) {
+      console.error("Failed to scan file:", err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(`Failed to scan image: ${errorMessage}`);
+    } finally {
+      // Reset the file input so the same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
-    <div className="flex flex-col items-center gap-4 px-4 py-8">
+    <div className="flex flex-col items-center gap-4 px-4 pb-8 pt-12">
       <div className="w-full max-w-md">
         <div
           id="reader"
@@ -141,7 +182,7 @@ const SarnovaBarcodeScanner = () => {
 
       <div className="flex gap-2">
         {!isScanning ? (
-          <Button onClick={startScanning} className="flex items-center gap-2">
+          <Button onClick={startScanning} className="flex items-center gap-2 cursor-pointer">
             <Camera className="w-4 h-4" />
             Start Scanning
           </Button>
@@ -149,13 +190,32 @@ const SarnovaBarcodeScanner = () => {
           <Button
             onClick={stopScanning}
             variant="destructive"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 cursor-pointer"
           >
             <CameraOff className="w-4 h-4" />
             Stop Scanning
           </Button>
         )}
+
+        <Button
+          onClick={handleUploadClick}
+          variant="outline"
+          className="flex items-center gap-2 cursor-pointer"
+          disabled={isScanning}
+        >
+          <Upload className="w-4 h-4" />
+          Upload Image
+        </Button>
       </div>
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
 
       {error && (
         <div className="w-full max-w-md p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
