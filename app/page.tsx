@@ -1,4 +1,4 @@
-import Image from "next/image";
+import SarnovaBarcodeScanner from "@/components/ui/SarnovaBarcodeScanner";
 
 export default function Home() {
   return (
@@ -8,6 +8,7 @@ export default function Home() {
         This is a simple barcode scanner that uses the camera to scan barcodes and
         display the results.
       </p>
+      <SarnovaBarcodeScanner />
     </main>
   );
 }
