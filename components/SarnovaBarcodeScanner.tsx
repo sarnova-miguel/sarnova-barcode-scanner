@@ -10,21 +10,30 @@ const SarnovaBarcodeScanner = () => {
   const [scannedResult, setScannedResult] = useState<string>("");
   const [error, setError] = useState<string>("");
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+  const isStoppingRef = useRef(false);
 
   useEffect(() => {
-    // Initialize Html5Qrcode instance
+    // Initialize Html5Qrcode instance only once
     html5QrCodeRef.current = new Html5Qrcode("reader");
 
     // Cleanup on unmount
     return () => {
       if (html5QrCodeRef.current) {
-        html5QrCodeRef.current
-          .stop()
-          .catch((err) => console.error("Failed to stop scanning:", err));
+        try {
+          // Check if scanner is actually running before stopping
+          const state = html5QrCodeRef.current.getState();
+          if (state === 2) { // 2 = SCANNING
+            html5QrCodeRef.current
+              .stop()
+              .catch((err) => console.log("Cleanup stop error (can be ignored):", err));
+          }
+        } catch (err) {
+          // Ignore errors during cleanup
+          console.log("Cleanup error (can be ignored):", err);
+        }
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // Empty dependency array - only run once on mount
 
   const startScanning = async () => {
     if (!html5QrCodeRef.current) {
@@ -35,6 +44,7 @@ const SarnovaBarcodeScanner = () => {
     try {
       console.log("start scanning...");
       setError("");
+      isStoppingRef.current = false;
 
       // Configuration for scanning
       const config = {
@@ -43,9 +53,11 @@ const SarnovaBarcodeScanner = () => {
       };
 
       // Success callback when barcode is scanned
-      const qrCodeSuccessCallback = (decodedText: string) => {
+      const qrCodeSuccessCallback = async (decodedText: string) => {
         console.log(`Code scanned: ${decodedText}`);
         setScannedResult(decodedText);
+        // Stop scanning after successful scan
+        await stopScanning();
       };
 
       // Error callback (optional, usually can be ignored)
@@ -72,20 +84,51 @@ const SarnovaBarcodeScanner = () => {
   };
 
   const stopScanning = async () => {
-    if (!html5QrCodeRef.current) return;
+    if (!html5QrCodeRef.current || isStoppingRef.current) return;
+
+    // If already not scanning, just update state and return
+    if (!isScanning) {
+      console.log("Scanner already stopped");
+      return;
+    }
+
+    isStoppingRef.current = true;
+    setIsScanning(false); // Update state immediately to prevent UI issues
 
     try {
-      await html5QrCodeRef.current.stop();
-      setIsScanning(false);
+      // Try to get the scanner state
+      let state;
+      try {
+        state = html5QrCodeRef.current.getState();
+        console.log("Scanner state:", state);
+      } catch (stateErr) {
+        console.log("Could not get scanner state:", stateErr);
+        // If we can't get state, assume it's not running
+        isStoppingRef.current = false;
+        return;
+      }
+
+      // Only call stop if scanner is actually running (state 2 = SCANNING)
+      if (state === 2) {
+        await html5QrCodeRef.current.stop();
+        console.log("Scanner stopped successfully");
+      } else {
+        console.log("Scanner not in scanning state (state: " + state + "), skipping stop call");
+      }
     } catch (err) {
-      console.error("Failed to stop scanning:", err);
+      console.log("Error during stop:", err);
+      // Don't show error to user for "not running" errors
       const errorMessage = err instanceof Error ? err.message : String(err);
-      setError(`Failed to stop camera: ${errorMessage}`);
+      if (!errorMessage.includes("not running") && !errorMessage.includes("not paused")) {
+        setError(`Failed to stop camera: ${errorMessage}`);
+      }
+    } finally {
+      isStoppingRef.current = false;
     }
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 p-4">
+    <div className="flex flex-col items-center gap-4 px-4 py-8">
       <div className="w-full max-w-md">
         <div
           id="reader"

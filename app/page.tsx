@@ -1,13 +1,18 @@
-import SarnovaBarcodeScanner from "@/components/ui/SarnovaBarcodeScanner";
+import SarnovaBarcodeScanner from "@/components/SarnovaBarcodeScanner";
 
 export default function Home() {
   return (
     <main>
-      <h1>Sarnova Barcode Scanner</h1>
-      <p>
-        This is a simple barcode scanner that uses the camera to scan barcodes and
-        display the results.
-      </p>
+      <p className="text-base md:text-lg text-gray-600">
+          Use your camera to scan any barcode to get detailed product
+          information!
+        </p>
+        <p className="text-base md:text-lg text-gray-600">
+          Hold the barcode still and centered in the viewfinder for 2-3 seconds.
+        </p>
+        <p className="text-base md:text-lg text-gray-600">
+          You can also upload an image containing a barcode.
+        </p>
       <SarnovaBarcodeScanner />
     </main>
   );

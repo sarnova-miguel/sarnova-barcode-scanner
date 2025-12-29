@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
+import SarnovaHeader from "@/components/SarnovaHeader";
+import Container from "@/components/ui/Container";
+import SarnovaNav from "@/components/SarnovaNav";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -9,7 +12,8 @@ const roboto = Roboto({
 
 export const metadata: Metadata = {
   title: "Sarnova Barcode Scanner",
-  description: "Scan barcodes to get information about Sarnova products and add them to your cart.",
+  description:
+    "Scan barcodes to get information about Sarnova products and add them to your cart.",
 };
 
 export default function RootLayout({
@@ -19,10 +23,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${roboto.variable} antialiased`}
-      >
-        {children}
+      <body className={`${roboto.variable} antialiased`}>
+        <SarnovaHeader />
+        <Container className="flex-1">{children}</Container>
+        <div className="md:hidden">
+          <SarnovaNav />
+        </div>
       </body>
     </html>
   );
