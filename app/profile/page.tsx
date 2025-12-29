@@ -1,8 +1,11 @@
+import PageTitle from '@/components/ui/PageTitle'
 import React from 'react'
 
 const ProfilePage = () => {
   return (
-    <div>ProfilePage</div>
+    <section>
+      <PageTitle>Profile</PageTitle>
+    </section>
   )
 }
 

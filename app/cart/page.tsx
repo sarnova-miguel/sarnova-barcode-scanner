@@ -1,8 +1,11 @@
+import PageTitle from '@/components/ui/PageTitle'
 import React from 'react'
 
 const CartPage = () => {
   return (
-    <div>CartPage</div>
+    <section>
+      <PageTitle>Cart</PageTitle>
+    </section>
   )
 }
 

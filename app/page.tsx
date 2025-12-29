@@ -1,8 +1,10 @@
 import SarnovaBarcodeScanner from "@/components/SarnovaBarcodeScanner";
+import PageTitle from "@/components/ui/PageTitle";
 
 export default function Home() {
   return (
-    <main>
+    <section>
+      <PageTitle>Sarnova Barcode Scanner</PageTitle>
       <p className="text-base md:text-lg text-gray-600">
           Use your camera to scan any barcode to get detailed product
           information!
@@ -14,6 +16,6 @@ export default function Home() {
           You can also upload an image containing a barcode.
         </p>
       <SarnovaBarcodeScanner />
-    </main>
+    </section>
   );
 }

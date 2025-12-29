@@ -1,8 +1,11 @@
+import PageTitle from '@/components/ui/PageTitle'
 import React from 'react'
 
 const SavedPage = () => {
   return (
-    <div>SavedPage</div>
+    <section>
+      <PageTitle>Saved Products</PageTitle>
+    </section>
   )
 }
 
