@@ -57,6 +57,7 @@ const SarnovaBarcodeScanner = () => {
         console.log(`Code scanned: ${decodedText}`);
         setScannedResult(decodedText);
         // Stop scanning after successful scan
+        console.log("Stopping scanner after successful scan...");
         await stopScanning();
       };
 
@@ -88,7 +89,9 @@ const SarnovaBarcodeScanner = () => {
 
     // If already not scanning, just update state and return
     if (!isScanning) {
-      console.log("Scanner already stopped");
+      console.log("Scanner already stopped, updating state anyway");
+      setIsScanning(false);
+      await html5QrCodeRef.current.stop();
       return;
     }
 
