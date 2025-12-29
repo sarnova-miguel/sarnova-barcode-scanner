@@ -8,7 +8,7 @@ const SarnovaNav = () => {
   const [activeLink, setActiveLink] = useState("/");
 
   return (
-    <nav className="w-full">
+    <nav className="w-full border-t border-gray-200 md:border-0">
       <ul className="w-full py-4 px-4 sm:px-6 md:px-0 flex justify-between md:gap-2">
         <li>
           <Link
