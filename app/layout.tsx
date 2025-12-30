@@ -4,6 +4,7 @@ import "./globals.css";
 import SarnovaHeader from "@/components/SarnovaHeader";
 import Container from "@/components/ui/Container";
 import SarnovaNav from "@/components/SarnovaNav";
+import { ProductProvider } from "@/context/ProductContext";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -24,11 +25,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${roboto.variable} antialiased`}>
-        <SarnovaHeader />
-        <Container className="flex-1">{children}</Container>
-        <div className="md:hidden">
-          <SarnovaNav />
-        </div>
+        <ProductProvider>
+          <SarnovaHeader />
+          <Container className="flex-1">{children}</Container>
+          <div className="md:hidden">
+            <SarnovaNav />
+          </div>
+        </ProductProvider>
       </body>
     </html>
   );

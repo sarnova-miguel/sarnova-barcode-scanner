@@ -5,6 +5,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { Button } from "@/components/ui/button";
 import { Camera, CameraOff, Upload } from "lucide-react";
 import ProductCard from "@/components/ui/ProductCard";
+import { useProducts } from "@/context/ProductContext";
 
 // Product interface based on Barcode Lookup API
 interface Product {
@@ -73,6 +74,7 @@ const MAX_DIMENSION = 4096; // 4K resolution
 const MAX_UPLOADS_PER_MINUTE = 10;
 
 const SarnovaBarcodeScanner = () => {
+  const { addToCart, toggleSaved, isSaved } = useProducts();
   const [isScanning, setIsScanning] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [scannedResult, setScannedResult] = useState<string>("");
@@ -80,6 +82,7 @@ const SarnovaBarcodeScanner = () => {
   const [uploadAttempts, setUploadAttempts] = useState<number[]>([]);
   const [productData, setProductData] = useState<Product | null>(null);
   const [isLoadingProduct, setIsLoadingProduct] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState<string>("");
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const isStoppingRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -112,6 +115,7 @@ const SarnovaBarcodeScanner = () => {
     setIsLoadingProduct(true);
     setProductData(null);
     setError("");
+    setConfirmationMessage(""); // Reset confirmation message on new scan
 
     try {
       // Call our internal API route instead of external API directly
@@ -537,7 +541,7 @@ const SarnovaBarcodeScanner = () => {
         </div>
       )}
 
-      {productData && (
+      {productData && !confirmationMessage && (
         <ProductCard
           image={productData.images?.[0] || '/placeholder-product.png'}
           title={productData.product_name || productData.title || 'Unknown Product'}
@@ -547,15 +551,46 @@ const SarnovaBarcodeScanner = () => {
           barcode={productData.barcode_number}
           description={productData.description}
           className="w-full max-w-2xl"
+          isSaved={isSaved(productData.barcode_number)}
           onSaveClick={() => {
-            // TODO: Implement save functionality
-            console.log('Save product:', productData.barcode_number);
+            const wasSaved = isSaved(productData.barcode_number);
+            toggleSaved({
+              barcode_number: productData.barcode_number,
+              product_name: productData.product_name || productData.title || 'Unknown Product',
+              title: productData.title || productData.product_name || 'Unknown Product',
+              price: parseFloat(productData.stores?.[0]?.price || '0'),
+              image: productData.images?.[0] || '/placeholder-product.png',
+              manufacturer: productData.manufacturer || productData.brand,
+              category: productData.category,
+            });
+            setConfirmationMessage(
+              wasSaved
+                ? 'Product removed from saved list!'
+                : 'Product saved successfully!'
+            );
+            setProductData(null);
           }}
           onAddToCartClick={() => {
-            // TODO: Implement add to cart functionality
-            console.log('Add to cart:', productData.barcode_number);
+            addToCart({
+              barcode_number: productData.barcode_number,
+              product_name: productData.product_name || productData.title || 'Unknown Product',
+              title: productData.title || productData.product_name || 'Unknown Product',
+              price: parseFloat(productData.stores?.[0]?.price || '0'),
+              image: productData.images?.[0] || '/placeholder-product.png',
+              manufacturer: productData.manufacturer || productData.brand,
+              category: productData.category,
+            });
+            setConfirmationMessage('Product added to cart successfully!');
+            setProductData(null);
           }}
         />
+      )}
+
+      {confirmationMessage && (
+        <div className="w-full max-w-2xl p-6 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+          <p className="font-semibold text-center">{confirmationMessage}</p>
+          <p className="text-sm text-center mt-2">Scan another barcode to continue</p>
+        </div>
       )}
     </div>
   );

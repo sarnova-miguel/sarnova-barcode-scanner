@@ -13,6 +13,7 @@ interface ProductCardProps {
   barcode?: string
   description?: string
   className?: string
+  isSaved?: boolean
   onSaveClick?: () => void
   onAddToCartClick?: () => void
 }
@@ -26,6 +27,7 @@ const ProductCard = ({
   barcode,
   description,
   className,
+  isSaved = false,
   onSaveClick,
   onAddToCartClick,
 }: ProductCardProps) => {
@@ -77,15 +79,18 @@ const ProductCard = ({
       {/* Action Buttons */}
       <div className="flex gap-3">
         <Button
-          variant="outline"
-          className="flex-1 gap-2"
+          variant={isSaved ? "default" : "outline"}
+          className={cn(
+            "flex-1 gap-2 cursor-pointer",
+            isSaved && "bg-red-500 hover:bg-red-600 text-white"
+          )}
           onClick={onSaveClick}
         >
-          <Heart className="w-4 h-4" />
-          Save
+          <Heart className={cn("w-4 h-4", isSaved && "fill-current")} />
+          {isSaved ? "Saved" : "Save"}
         </Button>
         <Button
-          className="flex-1 gap-2 bg-cyan-500 hover:bg-cyan-600 text-white"
+          className="flex-1 gap-2 cursor-pointer bg-cyan-500 hover:bg-cyan-600 text-white"
           onClick={onAddToCartClick}
         >
           <ShoppingCart className="w-4 h-4" />
