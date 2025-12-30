@@ -100,7 +100,6 @@ The barcode scanner is implemented in `components/SarnovaBarcodeScanner.tsx` and
 - Automatically stops after successful scan
 - Supports multiple barcode formats (UPC, EAN, QR codes, etc.)
 
-<div style="background-color: grey; padding: 10px; width: fit-content;">
 **User Flow:**
 1. User clicks "Start Scanning" button
 2. Browser requests camera permission
@@ -108,7 +107,6 @@ The barcode scanner is implemented in `components/SarnovaBarcodeScanner.tsx` and
 4. User positions barcode in the viewfinder
 5. Barcode is automatically detected and decoded
 6. Scanner stops and product lookup begins
-</div>
 
 #### 2. Image Upload
 - Upload images containing barcodes
@@ -116,7 +114,6 @@ The barcode scanner is implemented in `components/SarnovaBarcodeScanner.tsx` and
 - Maximum file size: 10MB
 - Maximum dimensions: 4096x4096 pixels
 
-<div style="background-color: grey; padding: 10px; width: fit-content;">
 **User Flow:**
 1. User clicks "Upload Image" button
 2. File picker opens
@@ -124,7 +121,6 @@ The barcode scanner is implemented in `components/SarnovaBarcodeScanner.tsx` and
 4. Image undergoes security validation
 5. Barcode is extracted from image
 6. Product lookup begins
-</div>
 
 ### Supported Barcode Formats
 - UPC-A, UPC-E
@@ -531,6 +527,6 @@ Offered multiple mobile or desktop focused designs with a Figma UI feel.
 ![Banani Design](https://github.com/sarnova-miguel/sarnova-barcode-scanner/blob/main/public/banani-3ui-mock.png)
 
 ### Development
-- [Augment](https://www.augmentcode.com/) - VSCode extension
+- [Augment](https://www.augmentcode.com/) - VSCode extension with Claude Sonnet 4.5
 - [Perplexity](https://www.perplexity.ai/)
 - [ChatGPT](https://chat.openai.com/) 
