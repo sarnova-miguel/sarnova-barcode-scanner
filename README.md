@@ -4,15 +4,17 @@
 
 The **Sarnova Barcode Scanner** is a Next.js-based web application that enables users to scan barcodes using their device camera or by uploading images. The application automatically fetches detailed product information from the Barcode Lookup API and displays it in a comprehensive, user-friendly interface.
 
+Conceptually, this feature would be available on the Sarnova websites and used as a tool for customers to find products and add them to their cart. It can also be used as a tool to identify products and brands commonly used by Sarnova customers.
+
 ### Key Features
-- 📷 **Real-time Camera Scanning**: Scan barcodes using device camera (mobile & desktop)
+- 📷 **Real-time Camera Scanning**: (Scan barcodes)[#barcode-scanner-functionality] using device camera (mobile & desktop) 
 - 📤 **Image Upload**: Upload barcode images for scanning
-- 🔍 **Product Information Lookup**: Automatic product data retrieval from Barcode Lookup API
+- 🔍 **Product Information Lookup**: Automatic product data retrieval from (Barcode Lookup API)[#barcode-api-lookup]
 - 🛡️ **Advanced Security**: Comprehensive validation and security measures
 - 🎨 **Modern UI**: Built with React, Next.js, and Tailwind CSS
 - ⚡ **Performance Optimized**: Server-side caching and optimized image handling
 - 📱 **Responsive Design**: Optimized for mobile and desktop
-- 🧠 **AI Development**: Designed and developed using AI tools
+- 🧠 **AI Development**: Designed and developed using (AI tools)[#developed-with-ai]
 
 ---
 
@@ -34,11 +36,13 @@ The **Sarnova Barcode Scanner** is a Next.js-based web application that enables 
   - Supports multiple formats: UPC, EAN, Code 128, Code 39, QR codes, etc.
   - Camera and file upload support
   - Cross-browser compatibility
+  - ScanApp (docs)[https://scanapp.org/html5-qrcode-docs/docs/intro]
 
 ### External APIs
 - **Barcode Lookup API v3** - Product information database
   - Endpoint: `https://api.barcodelookup.com/v3/products`
   - Provides comprehensive product details, images, pricing, and reviews
+  - Barcode Lookup (docs)[https://www.barcodelookup.com/api-documentation]
 
 ---
 
@@ -513,13 +517,13 @@ This project is private and proprietary to Sarnova.
 This project was designed and developed with the help of AI.
 
 ### Design
-Each UI Design tool was given the same prompt to generate a design for the barcode scanner. The designs were then compared and the best elements were chosen.
+Each AI Design tool was given the same prompt to generate a design for the barcode scanner. The designs were then compared and the best elements were chosen.
 - [Lovable](https://lovable.dev/)
 ![Lovable Design](https://github.com/sarnova-miguel/sarnova-barcode-scanner/blob/main/public/lovable-ui-mock.png)
 - [Base44](https://base44.com/)
 ![Base44 Design](https://github.com/sarnova-miguel/sarnova-barcode-scanner/blob/main/public/base44-ui-mock.png)
 - [Banani](https://www.banani.co/) 🏆
-Offered mobile or desktop focused designs with a Figma UI feel.
+Offered multiple mobile or desktop focused designs with a Figma UI feel.
 ![Banani Design](https://github.com/sarnova-miguel/sarnova-barcode-scanner/blob/main/public/banani-3ui-mock.png)
 
 ### Development
