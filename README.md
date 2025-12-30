@@ -1,8 +1,37 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Features
+
+- **Barcode Scanning**: Scan barcodes using your device camera or upload an image
+- **Product Information**: Automatically fetch product details from Barcode Lookup API
+- **Product Cards**: Display comprehensive product information including images, descriptions, features, and pricing
+- **Security**: Comprehensive validation and security measures for file uploads
+
+## Setup
+
+### 1. Install Dependencies
+
+```bash
+pnpm install
+```
+
+### 2. Configure API Key
+
+1. Get your API key from [Barcode Lookup](https://www.barcodelookup.com/api)
+2. Copy `.env.example` to `.env.local`:
+   ```bash
+   cp .env.example .env.local
+   ```
+3. Add your API key to `.env.local`:
+   ```
+   BARCODE_LOOKUP_API_KEY=your_actual_api_key_here
+   ```
+
+   **Note**: The API key is stored server-side only (not prefixed with `NEXT_PUBLIC_`) for security. The client-side component calls the internal `/api/lookup/[barcode]` route, which then calls the Barcode Lookup API.
+
 ## Getting Started
 
-First, run the development server:
+Run the development server:
 
 ```bash
 npm run dev

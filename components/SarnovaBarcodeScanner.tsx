@@ -4,6 +4,67 @@ import React, { useState, useRef, useEffect } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { Button } from "@/components/ui/button";
 import { Camera, CameraOff, Upload } from "lucide-react";
+import ProductCard from "@/components/ui/ProductCard";
+
+// Product interface based on Barcode Lookup API
+interface Product {
+  barcode_number: string;
+  barcode_type: string;
+  barcode_formats: string;
+  mpn: string;
+  model: string;
+  asin: string;
+  product_name: string;
+  title: string;
+  category: string;
+  manufacturer: string;
+  brand: string;
+  label: string;
+  author: string;
+  publisher: string;
+  artist: string;
+  actor: string;
+  director: string;
+  studio: string;
+  genre: string;
+  audience_rating: string;
+  ingredients: string;
+  nutrition_facts: string;
+  color: string;
+  format: string;
+  package_quantity: string;
+  size: string;
+  length: string;
+  width: string;
+  height: string;
+  weight: string;
+  release_date: string;
+  description: string;
+  features: string[];
+  images: string[];
+  last_update: string;
+  stores: Array<{
+    name: string;
+    country: string;
+    currency: string;
+    currency_symbol: string;
+    price: string;
+    sale_price: string;
+    tax: string;
+    link: string;
+    item_group_id: string;
+    availability: string;
+    condition: string;
+    shipping: string;
+    last_update: string;
+  }>;
+  reviews: Array<{
+    name: string;
+    rating: string;
+    review: string;
+    date: string;
+  }>;
+}
 
 // Security constants
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/bmp'];
@@ -17,6 +78,8 @@ const SarnovaBarcodeScanner = () => {
   const [scannedResult, setScannedResult] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [uploadAttempts, setUploadAttempts] = useState<number[]>([]);
+  const [productData, setProductData] = useState<Product | null>(null);
+  const [isLoadingProduct, setIsLoadingProduct] = useState(false);
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const isStoppingRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -44,6 +107,37 @@ const SarnovaBarcodeScanner = () => {
     };
   }, []); // Empty dependency array - only run once on mount
 
+  // Fetch product data from internal API route
+  const fetchProductData = async (barcode: string) => {
+    setIsLoadingProduct(true);
+    setProductData(null);
+    setError("");
+
+    try {
+      // Call our internal API route instead of external API directly
+      const response = await fetch(`/api/lookup/${encodeURIComponent(barcode)}`);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.error || "Failed to fetch product information.");
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.product) {
+        setProductData(data.product);
+      } else {
+        setError("No product information found for this barcode.");
+      }
+    } catch (err) {
+      console.error("Failed to fetch product data:", err);
+      setError("Failed to fetch product information. Please check your internet connection.");
+    } finally {
+      setIsLoadingProduct(false);
+    }
+  };
+
   const startScanning = async () => {
     if (!html5QrCodeRef.current) {
       console.log("startScanning started but no html5QrCodeRef.current ...");
@@ -68,6 +162,8 @@ const SarnovaBarcodeScanner = () => {
         // Stop scanning after successful scan
         console.log("Stopping scanner after successful scan...");
         await stopScanning();
+        // Fetch product data
+        await fetchProductData(decodedText);
       };
 
       // Error callback (optional, usually can be ignored)
@@ -324,6 +420,9 @@ const SarnovaBarcodeScanner = () => {
         fileType: file.type
       });
 
+      // Fetch product data
+      await fetchProductData(decodedText);
+
     } catch (err) {
       console.error("Failed to scan file:", err);
 
@@ -422,11 +521,41 @@ const SarnovaBarcodeScanner = () => {
         </div>
       )}
 
-      {scannedResult && (
+      {scannedResult && !productData && !isLoadingProduct && !error && (
         <div className="w-full max-w-md p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-          <p className="font-semibold">Scanned Result:</p>
+          <p className="font-semibold">Scanned Barcode:</p>
           <p className="break-all">{scannedResult}</p>
         </div>
+      )}
+
+      {isLoadingProduct && (
+        <div className="w-full max-w-2xl p-6 bg-white border border-gray-300 rounded-lg shadow-md">
+          <div className="flex items-center justify-center gap-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+            <p className="text-gray-700">Loading product information...</p>
+          </div>
+        </div>
+      )}
+
+      {productData && (
+        <ProductCard
+          image={productData.images?.[0] || '/placeholder-product.png'}
+          title={productData.product_name || productData.title || 'Unknown Product'}
+          price={parseFloat(productData.stores?.[0]?.price || '0')}
+          category={productData.category || 'Uncategorized'}
+          manufacturer={productData.manufacturer || productData.brand}
+          barcode={productData.barcode_number}
+          description={productData.description}
+          className="w-full max-w-2xl"
+          onSaveClick={() => {
+            // TODO: Implement save functionality
+            console.log('Save product:', productData.barcode_number);
+          }}
+          onAddToCartClick={() => {
+            // TODO: Implement add to cart functionality
+            console.log('Add to cart:', productData.barcode_number);
+          }}
+        />
       )}
     </div>
   );

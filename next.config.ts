@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'www.sarnova.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.barcodelookup.com',
+      },
     ],
   },
 
@@ -21,11 +25,11 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "img-src 'self' data: blob: https://www.sarnova.com",
+              "img-src 'self' data: blob: https://www.sarnova.com https://images.barcodelookup.com https://*.barcodelookup.com",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline'",
               "font-src 'self' data:",
-              "connect-src 'self'",
+              "connect-src 'self' https://api.barcodelookup.com",
               "media-src 'self' blob:",
               "object-src 'none'",
               "base-uri 'self'",

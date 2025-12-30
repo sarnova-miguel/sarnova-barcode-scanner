@@ -5,6 +5,9 @@ const ProfilePage = () => {
   return (
     <section>
       <PageTitle>Profile</PageTitle>
+      <p className="text-base md:text-lg text-gray-600">
+        Under construction!
+      </p>
     </section>
   )
 }
