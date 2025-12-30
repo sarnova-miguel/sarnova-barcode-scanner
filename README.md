@@ -7,14 +7,14 @@ The **Sarnova Barcode Scanner** is a Next.js-based web application that enables 
 Conceptually, this feature would be available on the Sarnova websites and used as a tool for customers to find products and add them to their cart. It can also be used as a tool to identify products and brands commonly used by Sarnova customers.
 
 ### Key Features
-- 📷 **Real-time Camera Scanning**: [Scan barcodes](#barcode-scanner-functionality) using device camera (mobile & desktop) 
+- 📷 **Real-time Camera Scanning**: [Scan barcodes](#-barcode-scanner-functionality) using device camera (mobile & desktop)
 - 📤 **Image Upload**: Upload barcode images for scanning
-- 🔍 **Product Information Lookup**: Automatic product data retrieval from [Barcode Lookup API](#barcode-api-lookup)
+- 🔍 **Product Information Lookup**: Automatic product data retrieval from [Barcode Lookup API](#-barcode-api-lookup)
 - 🛡️ **Advanced Security**: Comprehensive validation and security measures
 - 🎨 **Modern UI**: Built with React, Next.js, and Tailwind CSS
 - ⚡ **Performance Optimized**: Server-side caching and optimized image handling
 - 📱 **Responsive Design**: Optimized for mobile and desktop
-- 🧠 **AI Development**: Designed and developed using [AI tools](#developed-with-ai)
+- 🧠 **AI Development**: Designed and developed using [AI tools](#️-developed-with-ai)
 
 ---
 
