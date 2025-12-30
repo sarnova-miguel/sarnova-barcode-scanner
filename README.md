@@ -7,14 +7,14 @@ The **Sarnova Barcode Scanner** is a Next.js-based web application that enables 
 Conceptually, this feature would be available on the Sarnova websites and used as a tool for customers to find products and add them to their cart. It can also be used as a tool to identify products and brands commonly used by Sarnova customers.
 
 ### Key Features
-- 📷 **Real-time Camera Scanning**: (Scan barcodes)[#barcode-scanner-functionality] using device camera (mobile & desktop) 
+- 📷 **Real-time Camera Scanning**: [Scan barcodes](#barcode-scanner-functionality) using device camera (mobile & desktop) 
 - 📤 **Image Upload**: Upload barcode images for scanning
-- 🔍 **Product Information Lookup**: Automatic product data retrieval from (Barcode Lookup API)[#barcode-api-lookup]
+- 🔍 **Product Information Lookup**: Automatic product data retrieval from [Barcode Lookup API](#barcode-api-lookup)
 - 🛡️ **Advanced Security**: Comprehensive validation and security measures
 - 🎨 **Modern UI**: Built with React, Next.js, and Tailwind CSS
 - ⚡ **Performance Optimized**: Server-side caching and optimized image handling
 - 📱 **Responsive Design**: Optimized for mobile and desktop
-- 🧠 **AI Development**: Designed and developed using (AI tools)[#developed-with-ai]
+- 🧠 **AI Development**: Designed and developed using [AI tools](#developed-with-ai)
 
 ---
 
@@ -36,13 +36,13 @@ Conceptually, this feature would be available on the Sarnova websites and used a
   - Supports multiple formats: UPC, EAN, Code 128, Code 39, QR codes, etc.
   - Camera and file upload support
   - Cross-browser compatibility
-  - ScanApp (docs)[https://scanapp.org/html5-qrcode-docs/docs/intro]
+  - ScanApp [docs](https://scanapp.org/html5-qrcode-docs/docs/intro)
 
 ### External APIs
 - **Barcode Lookup API v3** - Product information database
   - Endpoint: `https://api.barcodelookup.com/v3/products`
   - Provides comprehensive product details, images, pricing, and reviews
-  - Barcode Lookup (docs)[https://www.barcodelookup.com/api-documentation]
+  - Barcode Lookup [docs](https://www.barcodelookup.com/api-documentation)
 
 ---
 
@@ -100,6 +100,7 @@ The barcode scanner is implemented in `components/SarnovaBarcodeScanner.tsx` and
 - Automatically stops after successful scan
 - Supports multiple barcode formats (UPC, EAN, QR codes, etc.)
 
+<div style="background-color: grey; padding: 10px; width: fit-content;">
 **User Flow:**
 1. User clicks "Start Scanning" button
 2. Browser requests camera permission
@@ -107,6 +108,7 @@ The barcode scanner is implemented in `components/SarnovaBarcodeScanner.tsx` and
 4. User positions barcode in the viewfinder
 5. Barcode is automatically detected and decoded
 6. Scanner stops and product lookup begins
+</div>
 
 #### 2. Image Upload
 - Upload images containing barcodes
@@ -114,6 +116,7 @@ The barcode scanner is implemented in `components/SarnovaBarcodeScanner.tsx` and
 - Maximum file size: 10MB
 - Maximum dimensions: 4096x4096 pixels
 
+<div style="background-color: grey; padding: 10px; width: fit-content;">
 **User Flow:**
 1. User clicks "Upload Image" button
 2. File picker opens
@@ -121,6 +124,7 @@ The barcode scanner is implemented in `components/SarnovaBarcodeScanner.tsx` and
 4. Image undergoes security validation
 5. Barcode is extracted from image
 6. Product lookup begins
+</div>
 
 ### Supported Barcode Formats
 - UPC-A, UPC-E
