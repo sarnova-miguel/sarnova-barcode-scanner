@@ -6,12 +6,14 @@ The **Sarnova Barcode Scanner** is a Next.js-based web application that enables 
 
 Conceptually, this feature would be available on the Sarnova websites and used as a tool for customers to find products and add them to their cart. It can also be used as a tool to identify products and brands commonly used by Sarnova customers.
 
+## Try out the Sarnova Barcode Scanner [here](https://sarnova-barcode-scanner.vercel.app/) :arrow_left:
+
 ### Key Features
 - 📷 **Real-time Camera Scanning**: [Scan barcodes](#-barcode-scanner-functionality) using device camera (mobile & desktop)
 - 📤 **Image Upload**: Upload barcode images for scanning
 - 🔍 **Product Information Lookup**: Automatic product data retrieval from [Barcode Lookup API](#-barcode-api-lookup)
 - 🛡️ **Advanced Security**: Comprehensive validation and security measures
-- 🎨 **Modern UI**: Built with React, Next.js, and Tailwind CSS
+- 🎨 **Modern UI**: Built with React, Next.js, TypeScript, and Tailwind CSS
 - ⚡ **Performance Optimized**: Server-side caching and optimized image handling
 - 📱 **Responsive Design**: Optimized for mobile and desktop
 - 🧠 **AI Development**: Designed and developed using [AI tools](#️-developed-with-ai)
@@ -58,10 +60,12 @@ Conceptually, this feature would be available on the Sarnova websites and used a
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### Sarnova Barcode Scanner [Demo](https://sarnova-barcode-scanner.vercel.app/) :arrow_left:
+
+### Prerequisites (for local development)
 - Node.js 20+ installed
 - pnpm package manager (recommended)
-<!-- - Barcode Lookup API key ([Get one here](https://www.barcodelookup.com/api)) -->
+- Barcode Lookup API key ([Get one here](https://www.barcodelookup.com/api))
 
 ### Installation
 
@@ -76,7 +80,7 @@ Conceptually, this feature would be available on the Sarnova websites and used a
    pnpm install
    ```
 
-<!-- 3. **Configure environment variables**
+3. **Configure environment variables**
    ```bash
    cp .env.example .env.local
    ```
@@ -86,7 +90,7 @@ Conceptually, this feature would be available on the Sarnova websites and used a
    BARCODE_LOOKUP_API_KEY=your_actual_api_key_here
    ```
    
-   ⚠️ **Important**: Do NOT use `NEXT_PUBLIC_` prefix - the API key must remain server-side only. -->
+   ⚠️ **Important**: Do NOT use `NEXT_PUBLIC_` prefix - the API key must remain server-side only.
 
 3. **Run the development server**
    ```bash
@@ -411,7 +415,7 @@ The `public/` folder contains various test barcode images:
 - **EAN**: `5449000000996` (Coca-Cola)
 - **ISBN**: `9780134685991` (Book)
 
-<!-- ### Testing Checklist
+### Testing Checklist
 
 **Functionality Tests:**
 - [ ] Camera scanning with valid barcode
@@ -431,7 +435,7 @@ The `public/` folder contains various test barcode images:
 **Browser Compatibility:**
 - [ ] Chrome/Edge (desktop & mobile)
 - [ ] Firefox (desktop & mobile)
-- [ ] Safari (desktop & mobile) -->
+- [ ] Safari (desktop & mobile)
 
 ---
 
@@ -481,13 +485,13 @@ Displays product information after successful scan.
 
 ## 🚀 Deployment
 
-### Vercel (Recommended)
+### Vercel
 
-1. Push code to GitHub/GitLab/Bitbucket
-2. Import project in Vercel
-3. Add environment variable: `BARCODE_LOOKUP_API_KEY`
-4. Deploy
+1. Code pushed to GitHub
+2. Project imported to Vercel
+3. Environment variable added in Vercel: `BARCODE_LOOKUP_API_KEY`
 
+### Sarnova Barcode Scanner [Vercel Deployment](https://sarnova-barcode-scanner.vercel.app/) :arrow_left:
 
 ---
 
@@ -513,7 +517,7 @@ This project is private and proprietary to Sarnova.
 - Ensure good lighting
 - Hold barcode steady for 2-3 seconds
 - Try different distance from camera
-- Ensure barcode is clear and not damaged
+- Ensure barcode is clear, in focus and not damaged
 
 ### Rate Limit Exceeded
 - Free tier: 100 requests/day
@@ -526,7 +530,7 @@ This project is private and proprietary to Sarnova.
 
 This project was designed and developed with the help of AI.
 
-### Design
+### AI Design
 Each AI Design tool was given the same prompt to generate a design for the barcode scanner. The designs were then compared and the best elements were chosen.
 - [Lovable](https://lovable.dev/)
 ![Lovable Design](https://github.com/sarnova-miguel/sarnova-barcode-scanner/blob/main/public/lovable-ui-mock.png)
@@ -536,7 +540,7 @@ Each AI Design tool was given the same prompt to generate a design for the barco
 Offered multiple mobile or desktop focused designs with a Figma UI feel.
 ![Banani Design](https://github.com/sarnova-miguel/sarnova-barcode-scanner/blob/main/public/banani-3ui-mock.png)
 
-### Development
+### AI Development
 - [Augment](https://www.augmentcode.com/) - VSCode extension with Claude Sonnet 4.5
 - [Perplexity](https://www.perplexity.ai/)
 - [ChatGPT](https://chat.openai.com/) 
