@@ -86,6 +86,7 @@ const SarnovaBarcodeScanner = () => {
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
   const isStoppingRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     // Initialize Html5Qrcode instance only once
@@ -427,6 +428,14 @@ const SarnovaBarcodeScanner = () => {
       // Fetch product data
       await fetchProductData(decodedText);
 
+      // Smooth scroll to results section after successful upload
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 100);
+
     } catch (err) {
       console.error("Failed to scan file:", err);
 
@@ -526,14 +535,14 @@ const SarnovaBarcodeScanner = () => {
       )}
 
       {scannedResult && !productData && !isLoadingProduct && !error && (
-        <div className="w-full max-w-md p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+        <div ref={resultsRef} className="w-full max-w-md p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
           <p className="font-semibold">Scanned Barcode:</p>
           <p className="break-all">{scannedResult}</p>
         </div>
       )}
 
       {isLoadingProduct && (
-        <div className="w-full max-w-2xl p-6 bg-white border border-gray-300 rounded-lg shadow-md">
+        <div ref={resultsRef} className="w-full max-w-2xl p-6 bg-white border border-gray-300 rounded-lg shadow-md">
           <div className="flex items-center justify-center gap-3">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
             <p className="text-gray-700">Loading product information...</p>
@@ -542,48 +551,50 @@ const SarnovaBarcodeScanner = () => {
       )}
 
       {productData && !confirmationMessage && (
-        <ProductCard
-          image={productData.images?.[0] || '/placeholder-product.png'}
-          title={productData.product_name || productData.title || 'Unknown Product'}
-          price={parseFloat(productData.stores?.[0]?.price || '0')}
-          category={productData.category || 'Uncategorized'}
-          manufacturer={productData.manufacturer || productData.brand}
-          barcode={productData.barcode_number}
-          description={productData.description}
-          className="w-full max-w-2xl"
-          isSaved={isSaved(productData.barcode_number)}
-          onSaveClick={() => {
-            const wasSaved = isSaved(productData.barcode_number);
-            toggleSaved({
-              barcode_number: productData.barcode_number,
-              product_name: productData.product_name || productData.title || 'Unknown Product',
-              title: productData.title || productData.product_name || 'Unknown Product',
-              price: parseFloat(productData.stores?.[0]?.price || '0'),
-              image: productData.images?.[0] || '/placeholder-product.png',
-              manufacturer: productData.manufacturer || productData.brand,
-              category: productData.category,
-            });
-            setConfirmationMessage(
-              wasSaved
-                ? 'Product removed from saved list!'
-                : 'Product saved successfully!'
-            );
-            setProductData(null);
-          }}
-          onAddToCartClick={() => {
-            addToCart({
-              barcode_number: productData.barcode_number,
-              product_name: productData.product_name || productData.title || 'Unknown Product',
-              title: productData.title || productData.product_name || 'Unknown Product',
-              price: parseFloat(productData.stores?.[0]?.price || '0'),
-              image: productData.images?.[0] || '/placeholder-product.png',
-              manufacturer: productData.manufacturer || productData.brand,
-              category: productData.category,
-            });
-            setConfirmationMessage('Product added to cart successfully!');
-            setProductData(null);
-          }}
-        />
+        <div ref={resultsRef}>
+          <ProductCard
+            image={productData.images?.[0] || '/placeholder-product.png'}
+            title={productData.product_name || productData.title || 'Unknown Product'}
+            price={parseFloat(productData.stores?.[0]?.price || '0')}
+            category={productData.category || 'Uncategorized'}
+            manufacturer={productData.manufacturer || productData.brand}
+            barcode={productData.barcode_number}
+            description={productData.description}
+            className="w-full max-w-2xl"
+            isSaved={isSaved(productData.barcode_number)}
+            onSaveClick={() => {
+              const wasSaved = isSaved(productData.barcode_number);
+              toggleSaved({
+                barcode_number: productData.barcode_number,
+                product_name: productData.product_name || productData.title || 'Unknown Product',
+                title: productData.title || productData.product_name || 'Unknown Product',
+                price: parseFloat(productData.stores?.[0]?.price || '0'),
+                image: productData.images?.[0] || '/placeholder-product.png',
+                manufacturer: productData.manufacturer || productData.brand,
+                category: productData.category,
+              });
+              setConfirmationMessage(
+                wasSaved
+                  ? 'Product removed from saved list!'
+                  : 'Product saved successfully!'
+              );
+              setProductData(null);
+            }}
+            onAddToCartClick={() => {
+              addToCart({
+                barcode_number: productData.barcode_number,
+                product_name: productData.product_name || productData.title || 'Unknown Product',
+                title: productData.title || productData.product_name || 'Unknown Product',
+                price: parseFloat(productData.stores?.[0]?.price || '0'),
+                image: productData.images?.[0] || '/placeholder-product.png',
+                manufacturer: productData.manufacturer || productData.brand,
+                category: productData.category,
+              });
+              setConfirmationMessage('Product added to cart successfully!');
+              setProductData(null);
+            }}
+          />
+        </div>
       )}
 
       {confirmationMessage && (
