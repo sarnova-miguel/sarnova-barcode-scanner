@@ -37,12 +37,22 @@ Conceptually, this feature would be available on the Sarnova websites and used a
   - Camera and file upload support
   - Cross-browser compatibility
   - ScanApp [docs](https://scanapp.org/html5-qrcode-docs/docs/intro)
+- **Alternative Barcode Scanning products** - Paid services
+  - [zxing-js](https://github.com/zxing-js/library) - FREE/Open Source
+  - [Scanbot SDK](https://scanbot.io/barcode-scanner-sdk/)
+  - [Dynamsoft Barcode Reader](https://www.dynamsoft.com/barcode-reader/overview/)
+  - [Strich.io Barcode Scanning library](https://strich.io/)
 
 ### External APIs
 - **Barcode Lookup API v3** - Product information database
   - Endpoint: `https://api.barcodelookup.com/v3/products`
   - Provides comprehensive product details, images, pricing, and reviews
   - Barcode Lookup [docs](https://www.barcodelookup.com/api-documentation)
+  - [API subscription plans](https://www.barcodelookup.com/api#sign-up)
+- **Alternative Barcode APIs** - Paid services
+  - [Go UPC](https://go-upc.com/plans/api)
+  - [UPC Item DB](https://devs.upcitemdb.com/)
+  - [UPC Database](https://upcdatabase.org/)
 
 ---
 
