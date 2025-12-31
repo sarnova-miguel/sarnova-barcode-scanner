@@ -4,7 +4,7 @@
 
 The **Sarnova Barcode Scanner** is a Next.js-based web application that enables users to scan barcodes using their device camera or by uploading images. The application automatically fetches detailed product information from the Barcode Lookup API and displays it in a comprehensive, user-friendly interface.
 
-Conceptually, this feature would be available on the Sarnova websites and used as a tool for customers to find products and add them to their cart. It can also be used as a tool to identify products and brands commonly used by Sarnova customers.
+Conceptually, this feature would be available on the Sarnova websites and used as a tool for customers to find products and add them to their cart. It can also be used as a tool to identify products and brands commonly used by Sarnova customers that are not currently available on Sarnova.
 
 ### :arrow_right: Try out the Sarnova Barcode Scanner [here](https://sarnova-barcode-scanner.vercel.app/) :arrow_left:
 
@@ -65,7 +65,7 @@ Conceptually, this feature would be available on the Sarnova websites and used a
 ### Prerequisites (for local development)
 - Node.js 20+ installed
 - pnpm package manager (recommended)
-- Barcode Lookup API key ([Get one here](https://www.barcodelookup.com/api))
+- Barcode Lookup API key ([Get a free one here](https://www.barcodelookup.com/api))
 
 ### Installation
 
