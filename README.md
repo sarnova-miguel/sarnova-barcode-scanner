@@ -6,7 +6,7 @@ The **Sarnova Barcode Scanner** is a Next.js-based web application that enables 
 
 Conceptually, this feature would be available on the Sarnova websites and used as a tool for customers to find products and add them to their cart. It can also be used as a tool to identify products and brands commonly used by Sarnova customers.
 
-## Try out the Sarnova Barcode Scanner [here](https://sarnova-barcode-scanner.vercel.app/) :arrow_left:
+### :arrow_right: Try out the Sarnova Barcode Scanner [here](https://sarnova-barcode-scanner.vercel.app/) :arrow_left:
 
 ### Key Features
 - 📷 **Real-time Camera Scanning**: [Scan barcodes](#-barcode-scanner-functionality) using device camera (mobile & desktop)
