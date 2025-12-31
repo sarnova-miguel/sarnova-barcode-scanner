@@ -29,7 +29,7 @@ export async function GET(
     console.log('Barcode lookup request:', sanitizedBarcode);
 
     // Get API key from environment variable (server-side only, not NEXT_PUBLIC_)
-    const apiKey = process.env.BARCODE_LOOKUP_API_KEY || "0yinrnfohz7u0yqbpmfj6rrtbc9b7l";
+    const apiKey = process.env.BARCODE_LOOKUP_API_KEY;
 
     if (!apiKey) {
       console.error('BARCODE_LOOKUP_API_KEY is not configured');
