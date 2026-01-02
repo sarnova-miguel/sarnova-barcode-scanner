@@ -560,7 +560,7 @@ const SarnovaBarcodeScanner = () => {
             manufacturer={productData.manufacturer || productData.brand}
             barcode={productData.barcode_number}
             description={productData.description}
-            className="w-full max-w-2xl"
+            className="w-full max-w-2xl my-8"
             isSaved={isSaved(productData.barcode_number)}
             onSaveClick={() => {
               const wasSaved = isSaved(productData.barcode_number);
