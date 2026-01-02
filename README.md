@@ -384,6 +384,63 @@ sarnova-barcode-scanner/
 
 ## 🧪 Testing
 
+### Running Unit Tests
+
+The project uses Jest and React Testing Library for unit testing.
+
+```bash
+# Run all tests
+pnpm test
+
+# Run tests in watch mode
+pnpm test:watch
+
+# Run tests with coverage
+pnpm test:coverage
+
+# Run specific test file
+npx jest --testPathPatterns="SarnovaBarcodeScanner.test.tsx"
+```
+
+### Unit Test Coverage
+
+**Location:** `components/SarnovaBarcodeScanner.test.tsx`
+
+The test suite covers the following areas:
+
+#### Rendering Tests
+- Component renders with all controls (Start Scanning, Upload Image buttons)
+- Reader div exists for camera scanning
+- Screen reader announcements are present
+
+#### Camera Controls Tests
+- "Stop Scanning" button appears when scanning is active
+- Upload button is disabled while scanning
+
+#### File Upload Validation Tests
+- Invalid file types are rejected (e.g., PDF files)
+- Files larger than 10MB are rejected
+- Invalid file extensions are rejected
+
+#### Edge Cases Tests
+- Null file input is handled gracefully
+- Empty file list is handled gracefully
+- Files with no extension are handled
+
+#### Request Deduplication Tests
+- **Rapid sequential scans**: When scanning barcode A, then immediately scanning barcode B before A's response returns, the first request is aborted and only Product B is displayed
+- **Duplicate request prevention**: Scanning the same barcode twice rapidly results in only one API call
+- **Silent abort handling**: No error is shown when a request is aborted due to a new scan
+
+#### Accessibility Tests
+- Toolbar has proper `aria-label`
+- All interactive elements have accessible names
+- Screen reader only status announcements exist
+- Proper heading structure (h1, h2, etc.)
+
+#### Rate Limiting Tests
+- Rate limit is enforced after multiple rapid uploads (10 per minute)
+
 ### Test Barcodes
 
 The `public/` folder contains various test barcode images:
@@ -415,7 +472,7 @@ The `public/` folder contains various test barcode images:
 - **EAN**: `5449000000996` (Coca-Cola)
 - **ISBN**: `9780134685991` (Book)
 
-### Testing Checklist
+### Manual Testing Checklist
 
 **Functionality Tests:**
 - [ ] Camera scanning with valid barcode
