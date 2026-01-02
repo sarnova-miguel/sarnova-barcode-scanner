@@ -673,18 +673,52 @@ const SarnovaBarcodeScanner = () => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 px-4 pb-8 pt-12">
-      <div className="w-full max-w-md">
+    <section
+      className="flex flex-col items-center gap-4 px-4 pb-8 pt-12"
+      aria-label="Barcode Scanner"
+    >
+      {/* Screen reader announcements for status updates */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {isScanning && "Camera scanning is active. Point your camera at a barcode."}
+        {isLoadingProduct && "Loading product information, please wait."}
+        {confirmationMessage && confirmationMessage}
+      </div>
+
+      {/* Screen reader announcements for errors */}
+      <div
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {error && `Error: ${error}`}
+      </div>
+
+      <section aria-labelledby="scanner-section-heading" className="w-full max-w-md">
+        <h1 id="scanner-section-heading" className="sr-only">
+          Barcode Scanner Camera View
+        </h1>
         <div
           id="reader"
           className="w-full rounded-lg overflow-hidden border-2 border-gray-300"
+          role="img"
+          aria-label={isScanning ? "Camera viewfinder - scanning for barcodes" : "Camera viewfinder - inactive"}
         />
-      </div>
+      </section>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2" role="toolbar" aria-label="Scanner controls">
         {!isScanning ? (
-          <Button onClick={startScanning} className="flex items-center gap-2 cursor-pointer">
-            <Camera className="w-4 h-4" />
+          <Button
+            onClick={startScanning}
+            className="flex items-center gap-2 cursor-pointer"
+            aria-label="Start camera scanning for barcodes"
+          >
+            <Camera className="w-4 h-4" aria-hidden="true" />
             Start Scanning
           </Button>
         ) : (
@@ -692,8 +726,9 @@ const SarnovaBarcodeScanner = () => {
             onClick={stopScanning}
             variant="destructive"
             className="flex items-center gap-2 cursor-pointer"
+            aria-label="Stop camera scanning"
           >
-            <CameraOff className="w-4 h-4" />
+            <CameraOff className="w-4 h-4" aria-hidden="true" />
             Stop Scanning
           </Button>
         )}
@@ -703,46 +738,75 @@ const SarnovaBarcodeScanner = () => {
           variant="outline"
           className="flex items-center gap-2 cursor-pointer"
           disabled={isScanning || isUploading}
+          aria-label={isUploading ? 'Processing uploaded image' : 'Upload an image containing a barcode'}
+          aria-busy={isUploading}
         >
-          <Upload className="w-4 h-4" />
+          <Upload className="w-4 h-4" aria-hidden="true" />
           {isUploading ? 'Processing...' : 'Upload Image'}
         </Button>
       </div>
 
-      {/* Hidden file input */}
+      {/* Hidden file input with accessibility label */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
         onChange={handleFileUpload}
-        className="hidden"
+        className="sr-only"
+        aria-label="Upload barcode image file"
+        tabIndex={-1}
       />
 
       {error && (
-        <div className="w-full max-w-md p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-          <p className="font-semibold">Error:</p>
-          <p>{error}</p>
+        <div
+          className="w-full max-w-md p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg"
+          role="alert"
+          aria-describedby="error-details"
+        >
+          <p className="font-semibold" id="error-heading">Error:</p>
+          <p id="error-details">{error}</p>
         </div>
       )}
 
       {scannedResult && !productData && !isLoadingProduct && !error && (
-        <div ref={resultsRef} className="w-full max-w-md p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-          <p className="font-semibold">Scanned Barcode:</p>
-          <p className="break-all">{scannedResult}</p>
+        <div
+          ref={resultsRef}
+          className="w-full max-w-md p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg"
+          role="status"
+          aria-label="Scan result"
+        >
+          <p className="font-semibold" id="barcode-label">Scanned Barcode:</p>
+          <p className="break-all" aria-labelledby="barcode-label">{scannedResult}</p>
         </div>
       )}
 
       {isLoadingProduct && (
-        <div ref={resultsRef} className="w-full max-w-2xl p-6 bg-white border border-gray-300 rounded-lg shadow-md">
+        <div
+          ref={resultsRef}
+          className="w-full max-w-2xl p-6 bg-white border border-gray-300 rounded-lg shadow-md"
+          role="status"
+          aria-busy="true"
+          aria-label="Loading product information"
+        >
           <div className="flex items-center justify-center gap-3">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+            <div
+              className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"
+              role="progressbar"
+              aria-label="Loading"
+            ></div>
             <p className="text-gray-700">Loading product information...</p>
           </div>
         </div>
       )}
 
       {transformedProduct && !confirmationMessage && (
-        <div ref={resultsRef}>
+        <section
+          ref={resultsRef}
+          aria-labelledby="product-result-heading"
+        >
+          <h2 id="product-result-heading" className="sr-only">
+            Scanned Product Result
+          </h2>
           <ProductCard
             image={transformedProduct.image}
             title={transformedProduct.title}
@@ -756,16 +820,20 @@ const SarnovaBarcodeScanner = () => {
             onSaveClick={handleSaveClick}
             onAddToCartClick={handleAddToCartClick}
           />
-        </div>
+        </section>
       )}
 
       {confirmationMessage && (
-        <div className="w-full max-w-2xl p-6 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+        <div
+          className="w-full max-w-2xl p-6 bg-green-100 border border-green-400 text-green-700 rounded-lg"
+          role="status"
+          aria-live="polite"
+        >
           <p className="font-semibold text-center">{confirmationMessage}</p>
           <p className="text-sm text-center mt-2">Scan another barcode to continue</p>
         </div>
       )}
-    </div>
+    </section>
   );
 };
 

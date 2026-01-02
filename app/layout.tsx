@@ -27,7 +27,7 @@ export default function RootLayout({
       <body className={`${roboto.variable} antialiased`}>
         <ProductProvider>
           <SarnovaHeader />
-          <Container className="flex-1 pb-24 md:pb-0">{children}</Container>
+          <Container className="flex-1 pb-24 md:pb-0" id="main-content">{children}</Container>
           <div className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-100 z-50 shadow-lg">
             <SarnovaNav />
           </div>
