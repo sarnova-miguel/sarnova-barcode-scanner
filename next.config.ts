@@ -35,8 +35,22 @@ const nextConfig: NextConfig = {
               "base-uri 'self'",
               "form-action 'self'",
               "frame-ancestors 'none'",
+              "worker-src 'self' blob:",
+              "child-src 'self' blob:",
               "upgrade-insecure-requests"
             ].join('; ')
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'credentialless'
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin'
+          },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'same-origin'
           },
           {
             key: 'X-Content-Type-Options',

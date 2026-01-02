@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { Button } from "@/components/ui/button";
 import { Camera, CameraOff, Upload } from "lucide-react";
@@ -67,6 +67,31 @@ interface Product {
   }>;
 }
 
+// Normalized product data for UI consumption
+interface TransformedProduct {
+  barcode_number: string;
+  product_name: string;
+  title: string;
+  price: number;
+  image: string;
+  manufacturer?: string;
+  category?: string;
+  description?: string;
+}
+
+// Transform API product data to normalized format
+// This eliminates duplication of transformation logic across handlers
+const transformProductData = (product: Product): TransformedProduct => ({
+  barcode_number: product.barcode_number,
+  product_name: product.product_name || product.title || 'Unknown Product',
+  title: product.title || product.product_name || 'Unknown Product',
+  price: parseFloat(product.stores?.[0]?.price || '0'),
+  image: product.images?.[0] || '/placeholder-product.png',
+  manufacturer: product.manufacturer || product.brand,
+  category: product.category || 'Uncategorized',
+  description: product.description,
+});
+
 // Security constants
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/bmp'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -79,7 +104,7 @@ const SarnovaBarcodeScanner = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [scannedResult, setScannedResult] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const [uploadAttempts, setUploadAttempts] = useState<number[]>([]);
+  const uploadAttemptsRef = useRef<number[]>([]);
   const [productData, setProductData] = useState<Product | null>(null);
   const [isLoadingProduct, setIsLoadingProduct] = useState(false);
   const [confirmationMessage, setConfirmationMessage] = useState<string>("");
@@ -87,6 +112,43 @@ const SarnovaBarcodeScanner = () => {
   const isStoppingRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const resultsRef = useRef<HTMLDivElement | null>(null);
+
+  // Request deduplication: cache and abort controller
+  const productCacheRef = useRef<Map<string, { data: Product; timestamp: number }>>(new Map());
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const pendingBarcodeRef = useRef<string | null>(null);
+  const CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache TTL
+
+  // Memoize transformed product data to prevent recalculation on every render
+  const transformedProduct = useMemo(() => {
+    return productData ? transformProductData(productData) : null;
+  }, [productData]);
+
+  // Memoize isSaved check to prevent recalculation on every render
+  const isProductSaved = useMemo(() => {
+    return transformedProduct ? isSaved(transformedProduct.barcode_number) : false;
+  }, [transformedProduct, isSaved]);
+
+  // Memoize save click handler to prevent ProductCard re-renders
+  const handleSaveClick = useCallback(() => {
+    if (!transformedProduct) return;
+    const wasSaved = isSaved(transformedProduct.barcode_number);
+    toggleSaved(transformedProduct);
+    setConfirmationMessage(
+      wasSaved
+        ? 'Product removed from saved list!'
+        : 'Product saved successfully!'
+    );
+    setProductData(null);
+  }, [transformedProduct, isSaved, toggleSaved]);
+
+  // Memoize add to cart click handler to prevent ProductCard re-renders
+  const handleAddToCartClick = useCallback(() => {
+    if (!transformedProduct) return;
+    addToCart(transformedProduct);
+    setConfirmationMessage('Product added to cart successfully!');
+    setProductData(null);
+  }, [transformedProduct, addToCart]);
 
   useEffect(() => {
     // Initialize Html5Qrcode instance only once
@@ -104,15 +166,51 @@ const SarnovaBarcodeScanner = () => {
               .catch((err) => console.log("Cleanup stop error (can be ignored):", err));
           }
         } catch (err) {
-          // Ignore errors during cleanup
           console.log("Cleanup error (can be ignored):", err);
         }
       }
     };
-  }, []); // Empty dependency array - only run once on mount
+  }, []);
 
-  // Fetch product data from internal API route
+  // Cleanup effect to periodically prune old upload attempts (every 30 seconds)
+  useEffect(() => {
+    const cleanupInterval = setInterval(() => {
+      const oneMinuteAgo = Date.now() - 60000;
+      uploadAttemptsRef.current = uploadAttemptsRef.current.filter(time => time > oneMinuteAgo);
+    }, 30000);
+
+    return () => clearInterval(cleanupInterval);
+  }, []);
+
+  // Fetch product data from internal API route with caching and request deduplication
   const fetchProductData = async (barcode: string) => {
+    // Check if this is a duplicate request for the same barcode
+    if (pendingBarcodeRef.current === barcode) {
+      console.log("Duplicate request detected, skipping:", barcode);
+      return;
+    }
+
+    // Cancel any pending request for a different barcode
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      console.log("Cancelled previous request");
+    }
+
+    // Check cache first
+    const cached = productCacheRef.current.get(barcode);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      console.log("Using cached product data for:", barcode);
+      setProductData(cached.data);
+      setError("");
+      setConfirmationMessage("");
+      return;
+    }
+
+    // Set up new request
+    pendingBarcodeRef.current = barcode;
+    abortControllerRef.current = new AbortController();
+    const { signal } = abortControllerRef.current;
+
     setIsLoadingProduct(true);
     setProductData(null);
     setError("");
@@ -120,7 +218,7 @@ const SarnovaBarcodeScanner = () => {
 
     try {
       // Call our internal API route instead of external API directly
-      const response = await fetch(`/api/lookup/${encodeURIComponent(barcode)}`);
+      const response = await fetch(`/api/lookup/${encodeURIComponent(barcode)}`, { signal });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -131,15 +229,30 @@ const SarnovaBarcodeScanner = () => {
       const data = await response.json();
 
       if (data.success && data.product) {
+        // Cache the successful response
+        productCacheRef.current.set(barcode, {
+          data: data.product,
+          timestamp: Date.now(),
+        });
         setProductData(data.product);
       } else {
         setError("No product information found for this barcode.");
       }
     } catch (err) {
+      // Don't show error if request was aborted (user scanned a new barcode)
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.log("Request aborted for barcode:", barcode);
+        return;
+      }
       console.error("Failed to fetch product data:", err);
       setError("Failed to fetch product information. Please check your internet connection.");
     } finally {
-      setIsLoadingProduct(false);
+      // Only clear loading state if this is still the pending request
+      if (pendingBarcodeRef.current === barcode) {
+        pendingBarcodeRef.current = null;
+        abortControllerRef.current = null;
+        setIsLoadingProduct(false);
+      }
     }
   };
 
@@ -245,15 +358,15 @@ const SarnovaBarcodeScanner = () => {
     const now = Date.now();
     const oneMinuteAgo = now - 60000;
 
-    // Filter out attempts older than 1 minute
-    const recentAttempts = uploadAttempts.filter(time => time > oneMinuteAgo);
+    // Filter out attempts older than 1 minute and update ref in place
+    uploadAttemptsRef.current = uploadAttemptsRef.current.filter(time => time > oneMinuteAgo);
 
-    if (recentAttempts.length >= MAX_UPLOADS_PER_MINUTE) {
+    if (uploadAttemptsRef.current.length >= MAX_UPLOADS_PER_MINUTE) {
       setError('Too many upload attempts. Please wait a moment before trying again.');
       return false;
     }
 
-    setUploadAttempts([...recentAttempts, now]);
+    uploadAttemptsRef.current.push(now);
     return true;
   };
 
@@ -347,6 +460,73 @@ const SarnovaBarcodeScanner = () => {
       .substring(0, 255);
   };
 
+  // Security: Re-encode image through canvas to strip embedded malicious content
+  // This sanitizes the image by decoding and re-encoding it, removing any scripts,
+  // metadata exploits, or polyglot payloads that could exploit browser vulnerabilities
+  const sanitizeImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+
+      img.onload = () => {
+        try {
+          // Create a canvas to re-encode the image
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            URL.revokeObjectURL(url);
+            reject(new Error('Failed to create canvas context'));
+            return;
+          }
+
+          // Draw the image to the canvas (this decodes and re-encodes it)
+          ctx.drawImage(img, 0, 0);
+
+          // Convert canvas back to a blob with the original type
+          const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+          const quality = file.type === 'image/png' ? undefined : 0.95;
+
+          canvas.toBlob(
+            (blob) => {
+              URL.revokeObjectURL(url);
+
+              if (!blob) {
+                reject(new Error('Failed to sanitize image'));
+                return;
+              }
+
+              // Create a new File from the sanitized blob
+              const sanitizedFile = new File([blob], file.name, {
+                type: mimeType,
+                lastModified: Date.now(),
+              });
+
+              console.log('Image sanitized successfully');
+              resolve(sanitizedFile);
+            },
+            mimeType,
+            quality
+          );
+        } catch (err) {
+          URL.revokeObjectURL(url);
+          reject(err);
+        }
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load image for sanitization'));
+      };
+
+      // Security: Prevent image from executing scripts during load
+      img.crossOrigin = 'anonymous';
+      img.src = url;
+    });
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     // Prevent multiple simultaneous uploads
     if (isUploading) {
@@ -412,9 +592,20 @@ const SarnovaBarcodeScanner = () => {
         await stopScanning();
       }
 
-      // Scan the uploaded file
+      // Security: Sanitize image by re-encoding through canvas
+      // This strips any embedded scripts, metadata exploits, or polyglot payloads
+      let sanitizedFile: File;
+      try {
+        sanitizedFile = await sanitizeImage(file);
+      } catch (sanitizeErr) {
+        setError('Failed to process image. The file may be corrupted or contain invalid data.');
+        console.error("Image sanitization error:", sanitizeErr);
+        return;
+      }
+
+      // Scan the sanitized file
       console.log("Starting barcode scan...");
-      const decodedText = await html5QrCodeRef.current.scanFile(file, true);
+      const decodedText = await html5QrCodeRef.current.scanFile(sanitizedFile, true);
       console.log(`File scan successful: ${decodedText}`);
       setScannedResult(decodedText);
 
@@ -550,49 +741,20 @@ const SarnovaBarcodeScanner = () => {
         </div>
       )}
 
-      {productData && !confirmationMessage && (
+      {transformedProduct && !confirmationMessage && (
         <div ref={resultsRef}>
           <ProductCard
-            image={productData.images?.[0] || '/placeholder-product.png'}
-            title={productData.product_name || productData.title || 'Unknown Product'}
-            price={parseFloat(productData.stores?.[0]?.price || '0')}
-            category={productData.category || 'Uncategorized'}
-            manufacturer={productData.manufacturer || productData.brand}
-            barcode={productData.barcode_number}
-            description={productData.description}
+            image={transformedProduct.image}
+            title={transformedProduct.title}
+            price={transformedProduct.price}
+            category={transformedProduct.category || 'Uncategorized'}
+            manufacturer={transformedProduct.manufacturer}
+            barcode={transformedProduct.barcode_number}
+            description={transformedProduct.description}
             className="w-full max-w-2xl my-8"
-            isSaved={isSaved(productData.barcode_number)}
-            onSaveClick={() => {
-              const wasSaved = isSaved(productData.barcode_number);
-              toggleSaved({
-                barcode_number: productData.barcode_number,
-                product_name: productData.product_name || productData.title || 'Unknown Product',
-                title: productData.title || productData.product_name || 'Unknown Product',
-                price: parseFloat(productData.stores?.[0]?.price || '0'),
-                image: productData.images?.[0] || '/placeholder-product.png',
-                manufacturer: productData.manufacturer || productData.brand,
-                category: productData.category,
-              });
-              setConfirmationMessage(
-                wasSaved
-                  ? 'Product removed from saved list!'
-                  : 'Product saved successfully!'
-              );
-              setProductData(null);
-            }}
-            onAddToCartClick={() => {
-              addToCart({
-                barcode_number: productData.barcode_number,
-                product_name: productData.product_name || productData.title || 'Unknown Product',
-                title: productData.title || productData.product_name || 'Unknown Product',
-                price: parseFloat(productData.stores?.[0]?.price || '0'),
-                image: productData.images?.[0] || '/placeholder-product.png',
-                manufacturer: productData.manufacturer || productData.brand,
-                category: productData.category,
-              });
-              setConfirmationMessage('Product added to cart successfully!');
-              setProductData(null);
-            }}
+            isSaved={isProductSaved}
+            onSaveClick={handleSaveClick}
+            onAddToCartClick={handleAddToCartClick}
           />
         </div>
       )}
